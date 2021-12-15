@@ -3,118 +3,27 @@ from tkinter import ttk, messagebox
 from PIL import Image, ImageTk
 import mysql.connector as mysql
 import datetime
+import os
+from os import sys
 
 
 from Setting import SettingTheme
-
-
-# Membuat database dan tabel jika belum ada
-def createDatabase():
-    conn = mysql.connect(user="root", password="", host="localhost", port='3306')
-    c = conn.cursor()
-
-    c.execute("CREATE DATABASE IF NOT EXISTS db_Sahabat_Masyarakat")
-    conn.commit()
-
-    conn.close()
-
-def createTable():
-    conn = mysql.connect(user="root", password="", database='db_Sahabat_Masyarakat', host="localhost", port='3306')
-    c = conn.cursor()
-
-    c.execute("""CREATE TABLE IF NOT EXISTS tb_Inventory (
-        prefix VARCHAR(4) NOT NULL DEFAULT 'ITM-',
-        id_barang INT(3) UNSIGNED NOT NULL AUTO_INCREMENT,
-        nama VARCHAR(255) NOT NULL,
-        qty INT(4) UNSIGNED,
-        harga INT(9) UNSIGNED,
-        dibuat DATETIME NULL,
-        diubah DATETIME NULL,
-        status_data VARCHAR(255) NULL,
-        PRIMARY KEY (id_barang),
-        UNIQUE KEY (prefix, id_barang),
-        UNIQUE KEY (nama),
-        INDEX (nama, harga)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1
-        """)
-    conn.commit()
-
-    c.execute("""CREATE TABLE IF NOT EXISTS tb_Detail_Barang (
-        id_barang INT(3) UNSIGNED NOT NULL AUTO_INCREMENT,
-        nama VARCHAR(255) NOT NULL,
-        kategori VARCHAR(255) NOT NULL,
-        dibuat DATETIME NULL,
-        diubah DATETIME NULL,
-        status_data VARCHAR(255) NULL,
-        PRIMARY KEY (id_barang),
-        INDEX (nama, kategori)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1
-    """)
-
-    c.execute("""CREATE TABLE IF NOT EXISTS tb_User (
-        username VARCHAR(255) PRIMARY KEY,
-        password VARCHAR(255) NOT NULL,
-        dibuat DATETIME NULL,
-        diubah DATETIME NULL,
-        status_data VARCHAR(255) NULL
-         )
-    """)
-    conn.commit()
-
-    c.execute("""CREATE TABLE IF NOT EXISTS tb_Riwayat_Pembelian (
-        id_struk INT(3) UNSIGNED NOT NULL AUTO_INCREMENT,
-        nama VARCHAR(255) NOT NULL,
-        qty INT(4) NOT NULL,
-        total INT(9) NOT NULL,
-        dibuat DATETIME NULL,
-        diubah DATETIME NULL,
-        status_data VARCHAR(255) NULL,
-        PRIMARY KEY (id_struk)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1
-    """)
-    conn.commit()
-
-    c.execute("""CREATE TABLE IF NOT EXISTS tb_Tabungan (
-        id_tabungan INT(3) UNSIGNED NOT NULL AUTO_INCREMENT,
-        pemasukkan INT(9) NOT NULL,
-        saldo_toko INT(12) NOT NULL,
-        dibuat DATETIME NULL,
-        diubah DATETIME NULL,
-        status_data VARCHAR(255) NULL,
-        PRIMARY KEY(id_tabungan),
-        INDEX (pemasukkan, saldo_toko)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1
-    """) 
-    conn.commit()
-
-    c.execute("""CREATE TABLE IF NOT EXISTS tb_Log_Data (
-        id_log INT(3) UNSIGNED NOT NULL AUTO_INCREMENT,
-        user VARCHAR(255) NOT NULL,
-        aksi VARCHAR(255) NOT NULL,
-        tabel VARCHAR(255) NOT NULL,
-        dibuat DATETIME NULL,
-        diubah DATETIME NULL,
-        status_data VARCHAR(255) NULL,
-        PRIMARY KEY(id_log),
-        INDEX (user, aksi, tabel)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1
-    """)
-    conn.commit()
-
-    conn.close()
 
 
 class MainWindow:
     def __init__(self):
         self.root = Tk()
         self.root_settings = SettingTheme()
-        self.root.geometry("900x680")
+        self.root.geometry("1200x740")
         self.root.resizable(True, True)
         self.root.overrideredirect(True)
-        self.root.configure(bg='#43e33d')
+        self.root.configure(bg='#F9ECE0')
         self.root.option_add("*TCombobox*Listbox*Background", "#FFFFFF")
         self.root.option_add("*TCombobox*Listbox*Foreground", "#F4963F")
         self.root.bind('<Escape>', self.closeEsc)
+        self.root.attributes("-topmost", True)
+
+        os.chdir(os.path.join(sys.path[0],))
 
 
         ## Header window ##
@@ -167,31 +76,22 @@ class MainWindow:
         self.frm_olah_data = LabelFrame(self.root,relief='groove', bg="#277454", height=200,width=350)
         self.frm_olah_data.place(x=50,y=300)
 
-        self.img_logo = ImageTk.PhotoImage(Image.open("Resources/Gambar/ZakatologyLogo.png").resize((300,300), Image.ANTIALIAS))
-        self.lbl_img_logo = Label(self.root, image=self.img_logo, bg='#43e33d', borderwidth=0).place(x=530,y=180)
+        self.img_logo = ImageTk.PhotoImage(Image.open("Gambar/ZakatologyLogo.png").resize((300,300), Image.ANTIALIAS))
+        self.lbl_img_logo = Label(self.root, image=self.img_logo, bg='#F9ECE0', borderwidth=0).place(x=530,y=180)
 
-        self.lbl_saldo = Label(self.root,font=("Lucida Sans",13,'bold'),fg='#FFFFFF',bg='#277454',text="Saldo :").place(x=600,y=45)
-        self.lbl_nama = Label(self.root,font=("Lucida Sans",15,'bold'),fg='#FFFFFF',bg='#277454',text="Nama").place(x=70,y=330)
+        self.lbl_welcome = Label(self.root,font=("Lucida Sans",15),fg='#277454',bg='#F9ECE0',text="Welcome to Zakatology!").place(x=500,y=100)
         # self.lbl_qty = Label(self.root,font=("Lucida Sans",15,'bold'),fg1='#FFFFFF',bg='#f08726',text="Qty").place(x=70,y=220)
-        self.lbl_harga = Label(self.root,font=("Lucida Sans",15,'bold'),fg='#FFFFFF',bg='#277454',text="Harga").place(x=70,y=430)
-        self.lbl_kategori = Label(self.root,font=("Lucida Sans",15,'bold'),fg='#FFFFFF',bg='#277454',text="Kategori").place(x=70,y=380)
-
-        self.txt_saldo = Entry(self.root,width=17,font=("Lucida Sans",12))
-        self.txt_saldo.place(x=670,y=46)
-
-        self.txt_nama = Entry(self.root,width=17,font=("Lucida Sans",11))
-        self.txt_nama.place(x=180,y=330)
 
         # self.txt_qty = Entry(self.root,width=17,font=("Lucida Sans",11))
         # self.txt_qty.place(x=130,y=320)
 
-        self.txt_harga = Entry(self.root,width=17,font=("Lucida Sans",11))
-        self.txt_harga.place(x=180,y=430)
+        # self.txt_harga = Entry(self.root,width=17,font=("Lucida Sans",11))
+        # self.txt_harga.place(x=180,y=430)
 
-        self.lst_kategori = ['Zakat', 'Zakat', 'Zakat', 'Zakat', 'Zakat']
-        self.cmb_kategori = ttk.Combobox(self.root, style="TCombobox", state="readonly", font=("Lucida Sans",12,'bold'), value=self.lst_kategori, width=14)
-        self.cmb_kategori.set("Pilih Jenis Zakat")
-        self.cmb_kategori.place(x=180,y=385)
+        # self.lst_kategori = ['Zakat', 'Zakat', 'Zakat', 'Zakat', 'Zakat']
+        # self.cmb_kategori = ttk.Combobox(self.root, style="TCombobox", state="readonly", font=("Lucida Sans",12,'bold'), value=self.lst_kategori, width=14)
+        # self.cmb_kategori.set("Pilih Jenis Zakat")
+        # self.cmb_kategori.place(x=180,y=385)
 
         self.btn_tambah = ttk.Button(self.root,style="TButton",text='Tambah',width=10)
         self.btn_tambah.place(x=190,y=460)
@@ -368,7 +268,5 @@ class MainWindow:
 
 
 if __name__ == "__main__":
-    createDatabase()
-    createTable()
     main = MainWindow()
     main.root.mainloop()
